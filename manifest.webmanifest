@@ -1,0 +1,20 @@
+{
+  "name": "학생 과제 디데이",
+  "short_name": "과제 디데이",
+  "description": "학생이 과제를 미리 시작하고 제출까지 챙길 수 있도록 돕는 D-Day 웹앱",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#fbf7ef",
+  "theme_color": "#3f8f6b",
+  "lang": "ko-KR",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "app-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

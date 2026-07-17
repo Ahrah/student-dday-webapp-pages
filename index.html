@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#3f8f6b">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="과제 디데이">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <title>학생 과제 디데이</title>
+    <link rel="manifest" href="manifest.webmanifest">
+    <link rel="icon" href="app-icon.svg" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="app-icon.svg">
+    <link rel="stylesheet" href="style.css">
+    <script src="sample-data.js" defer></script>
+    <script src="app.js" defer></script>
+    <script src="tests.js" defer></script>
+  </head>
+  <body>
+    <header class="app-header">
+      <div>
+        <p class="eyebrow">iPad 과제 관리 웹앱</p>
+        <h1>학생 과제 디데이</h1>
+      </div>
+      <p class="today-label" id="todayLabel">오늘 날짜 확인 중</p>
+    </header>
+
+    <main class="app-shell">
+      <section class="focus-panel" aria-labelledby="focusTitle">
+        <div class="next-action">
+          <p class="eyebrow">오늘 할 다음 행동</p>
+          <h2 id="focusTitle">한 가지부터 시작해요</h2>
+          <p id="nextActionText">과제 데이터를 불러오는 중입니다.</p>
+        </div>
+        <div class="storage-alert" id="storageAlert" hidden>
+          <strong>저장 데이터를 일부 복구했어요</strong>
+          <p id="storageAlertText"></p>
+        </div>
+        <div class="status-notice" id="statusNotice" hidden>
+          <p id="statusNoticeText"></p>
+        </div>
+        <div class="warning-box" id="overdueBox" hidden>
+          <strong>기한이 지난 미완료 과제</strong>
+          <ul id="overdueList"></ul>
+        </div>
+      </section>
+
+      <section class="layout-grid">
+        <form class="task-form" id="assignmentForm" aria-label="과제 입력 폼" novalidate>
+          <div class="form-heading">
+            <h2 id="formTitle">과제 추가</h2>
+            <button type="button" class="ghost-button" id="cancelEditButton" hidden>수정 취소</button>
+          </div>
+
+          <input type="hidden" id="assignmentId">
+
+          <label>
+            과제명
+            <input type="text" id="titleInput" maxlength="60" placeholder="예: 역사 수행평가 보고서" required>
+          </label>
+
+          <label>
+            과목
+            <input type="text" id="subjectInput" maxlength="30" placeholder="예: 역사" required>
+          </label>
+
+          <label>
+            마감 날짜
+            <input type="date" id="dueDateInput" required>
+          </label>
+
+          <label>
+            예상 소요시간
+            <select id="estimateInput">
+              <option value="1">1시간</option>
+              <option value="2">2시간</option>
+              <option value="3" selected>3시간</option>
+              <option value="4">4시간</option>
+              <option value="5">5시간</option>
+              <option value="6">6시간</option>
+              <option value="7">7시간</option>
+              <option value="8">8시간</option>
+              <option value="9">9시간</option>
+              <option value="10">10시간</option>
+            </select>
+          </label>
+
+          <label>
+            상태
+            <select id="statusInput">
+              <option>시작 전</option>
+              <option>진행 중</option>
+              <option>작성 완료</option>
+              <option>제출 완료</option>
+            </select>
+          </label>
+
+          <label>
+            메모
+            <textarea id="memoInput" rows="3" maxlength="240" placeholder="준비물, 제출 위치, 선생님 안내 등을 적어 두세요."></textarea>
+          </label>
+
+          <label>
+            세부 체크리스트
+            <textarea id="checklistInput" rows="4" placeholder="한 줄에 하나씩 입력하세요.&#10;예: 자료 조사하기&#10;예: 초안 작성하기"></textarea>
+          </label>
+
+          <p class="form-error" id="formError" role="alert"></p>
+
+          <button type="submit" class="primary-button" id="saveButton">과제 저장</button>
+        </form>
+
+        <section class="task-board" aria-labelledby="boardTitle">
+          <div class="board-header">
+            <div>
+              <p class="eyebrow">마감 임박순</p>
+              <h2 id="boardTitle">과제 목록</h2>
+            </div>
+            <p id="countLabel">0개</p>
+          </div>
+
+          <div class="filters" aria-label="필터">
+            <label>
+              정렬
+              <select id="sortSelect">
+                <option value="deadline">마감 임박순</option>
+              </select>
+            </label>
+            <label>
+              과목별 필터
+              <select id="subjectFilter">
+                <option value="all">전체 과목</option>
+              </select>
+            </label>
+            <label>
+              상태 필터
+              <select id="completionFilter">
+                <option value="all">전체</option>
+                <option value="incomplete">미완료</option>
+                <option value="not-started">시작 전</option>
+                <option value="in-progress">진행 중</option>
+                <option value="written">작성 완료</option>
+                <option value="submitted">제출 완료</option>
+                <option value="overdue">기한 초과</option>
+              </select>
+            </label>
+          </div>
+
+          <div class="data-tools" aria-label="데이터 백업과 복원">
+            <button type="button" class="tool-button" id="backupButton">백업</button>
+            <button type="button" class="tool-button" id="restoreButton">복원</button>
+            <input type="file" id="restoreFileInput" accept="application/json,.json" hidden>
+          </div>
+
+          <div class="task-list" id="assignmentList"></div>
+          <p class="empty-state" id="emptyState" hidden>조건에 맞는 과제가 없습니다.</p>
+        </section>
+      </section>
+    </main>
+  </body>
+</html>

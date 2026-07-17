@@ -47,6 +47,10 @@
       utils.validateForm({ title: "과제", subject: "국어", dueDate: "not-date", dueTime: "20:00" }) ===
         "올바른 날짜와 시간을 입력하세요."
     );
+    assert("활성 상태 판별", utils.isActiveStatus("작성 완료") === true);
+    assert("제출 완료는 활성 제한 제외", utils.isActiveStatus("제출 완료") === false);
+    assert("보관은 활성 제한 제외", utils.isActiveStatus("보관") === false);
+    assert("무료 활성 제한 수치", utils.freeActiveLimit === 3);
 
     const passed = results.filter((item) => item.pass).length;
     const failed = results.length - passed;

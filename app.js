@@ -1,7 +1,11 @@
 (() => {
   const STORAGE_KEY = "student-dday-assignments-v1";
   const MS_PER_DAY = 24 * 60 * 60 * 1000;
-  const STATUSES = ["시작 전", "진행 중", "작성 완료", "제출 완료"];
+  const STATUSES = ["시작 전", "진행 중", "작성 완료", "제출 완료", "보관"];
+  const ACTIVE_STATUSES = ["시작 전", "진행 중", "작성 완료"];
+  const FREE_ACTIVE_LIMIT = 3;
+  const FREE_LIMIT_MESSAGE =
+    "무료 플랜에서는 진행 중인 할 일을 최대 3개까지 등록할 수 있어요. 기존 할 일을 완료하거나 프리미엄을 시작해주세요.";
 
   const state = {
     assignments: [],
@@ -73,6 +77,7 @@
   }
 
   function getDdayGuide(daysLeft, assignment, now = new Date()) {
+    if (assignment.status === "보관") return "보관한 과제예요.";
     if (assignment.status === "제출 완료") return "제출을 완료했어요.";
     if (assignment.status === "작성 완료") return "작성은 끝났어요. 실제 제출 여부를 확인하세요.";
     if (isDeadlinePassed(assignment, now)) return "제출 가능 여부를 선생님께 확인하세요.";
@@ -92,6 +97,18 @@
 
   function isSubmitted(assignment) {
     return assignment.status === "제출 완료";
+  }
+
+  function isActiveStatus(status) {
+    return ACTIVE_STATUSES.includes(status);
+  }
+
+  function isActionable(assignment) {
+    return assignment.status !== "제출 완료" && assignment.status !== "보관";
+  }
+
+  function getActiveAssignmentCount(excludeId = "") {
+    return state.assignments.filter((item) => item.id !== excludeId && isActiveStatus(item.status)).length;
   }
 
   function isDeadlinePassed(assignment, now = new Date()) {
@@ -270,6 +287,9 @@
     if (!data.subject.trim()) return "과목을 입력하세요.";
     if (!data.dueDate) return "마감 날짜를 선택하세요.";
     if (!parseKoreanDateTime(data.dueDate, data.dueTime)) return "올바른 날짜와 시간을 입력하세요.";
+    if (isActiveStatus(data.status) && getActiveAssignmentCount(data.id) >= FREE_ACTIVE_LIMIT) {
+      return FREE_LIMIT_MESSAGE;
+    }
     return "";
   }
 
@@ -383,10 +403,10 @@
       item.id === checkId ? { ...item, done: !item.done } : item
     );
 
-    // 체크리스트 변화에 따라 상태를 돕되, 사용자가 직접 제출 완료한 과제는 되돌리지 않습니다.
+    // 체크리스트 변화에 따라 상태를 돕되, 사용자가 직접 제출 완료/보관한 과제는 되돌리지 않습니다.
     const doneCount = assignment.checklist.filter((item) => item.done).length;
     const allDone = assignment.checklist.length > 0 && doneCount === assignment.checklist.length;
-    if (assignment.status !== "제출 완료" && allDone) {
+    if (isActionable(assignment) && allDone) {
       assignment.status = "작성 완료";
       showNotice("체크리스트를 모두 완료해 작성 완료로 변경했습니다.");
     } else if (assignment.status === "시작 전" && doneCount > 0) {
@@ -401,6 +421,11 @@
   function changeStatus(id, status) {
     const assignment = state.assignments.find((item) => item.id === id);
     if (!assignment || !STATUSES.includes(status)) return;
+    if (isActiveStatus(status) && !isActiveStatus(assignment.status) && getActiveAssignmentCount(id) >= FREE_ACTIVE_LIMIT) {
+      showNotice(FREE_LIMIT_MESSAGE);
+      render();
+      return;
+    }
 
     assignment.status = status;
     assignment.updatedAt = new Date().toISOString();
@@ -436,12 +461,13 @@
       const subjectMatch = state.subjectFilter === "all" || assignment.subject === state.subjectFilter;
       const completionMatch =
         state.completionFilter === "all" ||
-        (state.completionFilter === "incomplete" && assignment.status !== "제출 완료") ||
+        (state.completionFilter === "incomplete" && isActionable(assignment)) ||
         (state.completionFilter === "not-started" && assignment.status === "시작 전") ||
         (state.completionFilter === "in-progress" && assignment.status === "진행 중") ||
         (state.completionFilter === "written" && assignment.status === "작성 완료") ||
         (state.completionFilter === "submitted" && assignment.status === "제출 완료") ||
-        (state.completionFilter === "overdue" && assignment.status !== "제출 완료" && isDeadlinePassed(assignment));
+        (state.completionFilter === "archived" && assignment.status === "보관") ||
+        (state.completionFilter === "overdue" && isActionable(assignment) && isDeadlinePassed(assignment));
       return subjectMatch && completionMatch;
     });
   }
@@ -460,7 +486,7 @@
 
   function renderNextAction() {
     const actionable = getSortedAssignments()
-      .filter((item) => item.status !== "제출 완료")
+      .filter(isActionable)
       .sort(compareNextActionPriority);
 
     if (!actionable.length) {
@@ -501,7 +527,7 @@
   }
 
   function renderOverdue() {
-    const overdue = getSortedAssignments().filter((item) => !isSubmitted(item) && isDeadlinePassed(item));
+    const overdue = getSortedAssignments().filter((item) => isActionable(item) && isDeadlinePassed(item));
     els.overdueBox.hidden = overdue.length === 0;
     els.overdueList.innerHTML = overdue
       .map((item) => `<li>${escapeHtml(item.subject)} - ${escapeHtml(item.title)}</li>`)
@@ -511,7 +537,7 @@
   function renderAssignmentCard(assignment) {
     const daysLeft = getDday(assignment.dueDate);
     const progress = getChecklistProgress(assignment.checklist);
-    const overdue = !isSubmitted(assignment) && isDeadlinePassed(assignment);
+    const overdue = isActionable(assignment) && isDeadlinePassed(assignment);
     const ddayClass = overdue || daysLeft < 0 ? " overdue" : " d-day";
     const actionHint = getActionHint(assignment, progress);
     const completeDisabled = assignment.status === "제출 완료";
@@ -741,6 +767,10 @@
     formatEstimate,
     createBackupPayload,
     validateForm,
+    isActiveStatus,
+    getActiveAssignmentCount,
+    freeActiveLimit: FREE_ACTIVE_LIMIT,
+    freeLimitMessage: FREE_LIMIT_MESSAGE,
     get storageKey() {
       return STORAGE_KEY;
     }

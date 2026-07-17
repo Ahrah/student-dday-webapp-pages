@@ -13,6 +13,14 @@
 
 ## Mac에서 실행하는 방법
 
+배포된 웹앱은 아래 주소에서 바로 열 수 있습니다.
+
+```text
+https://ahrah.github.io/student-dday-webapp-pages/
+```
+
+로컬 파일로 확인하려면 아래 방법을 사용합니다.
+
 1. Finder에서 이 폴더를 엽니다.
 2. `outputs` 폴더 안의 `index.html`을 더블클릭합니다.
 3. 브라우저가 열리면 바로 과제를 추가하거나 예제 과제를 수정해 볼 수 있습니다.
@@ -78,7 +86,13 @@ python3 -m http.server 8000
 http://localhost:8000
 ```
 
-iPad에서는 같은 네트워크에서 Mac의 로컬 주소로 접속하거나, 나중에 HTTPS로 배포한 주소를 Safari로 연 뒤 공유 버튼에서 `홈 화면에 추가`를 선택하면 됩니다. 이번 단계에서는 실제 앱스토어 앱, 로그인, 결제, 위젯 기능은 추가하지 않았습니다.
+iPad에서는 아래 HTTPS 주소를 Safari로 연 뒤 공유 버튼에서 `홈 화면에 추가`를 선택하면 됩니다.
+
+```text
+https://ahrah.github.io/student-dday-webapp-pages/
+```
+
+이번 단계에서는 실제 앱스토어 앱, 로그인, 결제, 위젯 기능은 추가하지 않았습니다.
 
 배포 준비와 iPad 확인 절차는 [iPad 홈 화면 추가와 HTTPS 배포 가이드](docs/ipad-pwa-deployment-guide.md)에 따로 정리했습니다.
 

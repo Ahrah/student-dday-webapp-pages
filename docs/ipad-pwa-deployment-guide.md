@@ -9,6 +9,12 @@
 - iPad Safari의 `홈 화면에 추가` 기능으로 앱처럼 실행할 수 있게 합니다.
 - 기존 localStorage 데이터와 현재 MVP 기능을 깨뜨리지 않습니다.
 
+현재 배포 주소:
+
+```text
+https://ahrah.github.io/student-dday-webapp-pages/
+```
+
 ## 현재 준비된 PWA 파일
 
 | 파일 | 역할 |
@@ -22,6 +28,15 @@
 ## 추천 배포 방식
 
 ### GitHub Pages
+
+현재 이 프로젝트는 GitHub Pages로 배포되어 있습니다.
+
+- 저장소: `https://github.com/Ahrah/student-dday-webapp-pages`
+- 배포 주소: `https://ahrah.github.io/student-dday-webapp-pages/`
+- 배포 브랜치: `main`
+- 배포 폴더: `/`
+
+다시 배포할 때의 기본 흐름:
 
 1. GitHub 저장소 루트에 `index.html`이 오게 파일을 올립니다.
 2. 저장소 Settings에서 Pages를 켭니다.
